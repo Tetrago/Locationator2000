@@ -27,9 +27,7 @@ function load(file, inserter, done) {
             const lat = Number(items[headers.lat]); 
             const lon = Number(items[headers.lon]); 
 
-            if(lat !== NaN && lon !== NaN) {
-                inserter(Number(items[headers.lat]), Number(items[headers.lon]));
-            }
+            if(lat !== NaN && lon !== NaN) inserter(lat, lon);
         }
     });
 
