@@ -50,6 +50,9 @@ module.exports = class Quadtree {
         else {
             // There is a preexisting datapoint
 
+            // Make sure it's not the same point
+            if(child.lat == lat && child.lon == lon) return;
+
             // Create a new children by shrinking the parent's extent
             let next = {
                 children: {},
