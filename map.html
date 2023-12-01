@@ -11,6 +11,8 @@
         <script>
             let coords;
             let map;
+            let nodes = [];
+            let layers;
 
             function setupMap() {
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -24,6 +26,13 @@
                     navigator.geolocation.getCurrentPosition(pos => {
                         coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
                         map = L.map('map').setView([pos.coords.latitude, pos.coords.longitude], 5);
+
+                        let circle = L.circle([pos.coords.latitude, pos.coords.longitude], {
+                            color: 'red',
+                            fillOpacity: 0.2,
+                            radius: pos.coords.accuracy
+                        }).addTo(map);
+
                         setupMap();
                     })
                 }
@@ -38,15 +47,28 @@
                 let qt = new Quadtree();
                 let wm = new world_map();
 
+                nodes.forEach(({ item }) => item.pop());
+                if(layers !== undefined) layers.pop();
+
                 for await(const { lat, lon } of loadFromUrl("./ufo_sightings.csv")) {
                     qt.insert(lat, lon, "UFO");
                     wm.insert("UFO", lat, lon);
                 }
 
-                for(const point of qt.findn(coords.lat, coords.lon, 10)) {
-                    let marker = L.marker([point.lat, point.lon]).addTo(map);
-                    marker.bindPopup(point.data).openPopup();
+                for(const point of qt.findn(coords.lat, coords.lon, 10)) {                    
+                    let marker = L.marker([point.lat, point.lon]).bindPopup(point.data);
+                    nodes.push({ group: "quadtree", item: marker });
                 }
+
+                for(const point of wm.search(10, coords.lat, coords.lon)) {
+                    let marker = L.marker([point.latitude, point.longitude]).bindPopup(point.name);
+                    nodes.push({ group: "geohash", item: marker });
+                }
+
+                let quadtree = L.layerGroup(nodes.filter(({ group }) => group === "quadtree").map(({ item }) => item)).addTo(map);
+                let geohash = L.layerGroup(nodes.filter(({ group }) => group === "geohash").map(({ item }) => item)).addTo(map);
+
+                layers = L.control.layers({}, { "Quadtree": quadtree, "Geohash": geohash }).addTo(map);
             }
 
             window.onload = () => {
@@ -57,8 +79,8 @@
 
         <style>
             #map {
-                width: 800px;
-                height: 600px;
+                width: 80vw;
+                height: 80vh;
             }
         </style>
         
