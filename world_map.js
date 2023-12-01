@@ -133,7 +133,11 @@ class world_map {
         //reconstruct arrK to be useful to example.js
         let arr = [];
         for(let i = 0; i < K; i++){
-            arr[i] = "(" + this.arrK[i].longitude + ", " + this.arrK[i].latitude + ")";
+            arr[i] = {
+                name: this.arrK[i].name,
+                longitude: this.arrK[i].longitude,
+                latitude: this.arrK[i].latitude,
+            };
         }
         return arr;
     };
