@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = class Quadtree {
+class Quadtree {
     constructor() {
         this.root = {
             // Table containing the four possible nodes: TR, TL, BR, and BL

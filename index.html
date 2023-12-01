@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Locationator2000</title>
+
+        <script src="./papaparse.min.js"></script>
+        <script src="./loader.js"></script>
+        <script src="./quadtree.js"></script>
+        <script src="./world_map.js"></script>
+
+        <script>
+            async function search() {
+                let qt = new Quadtree();
+                let wm = new world_map();
+
+                for await(const { lat, lon } of loadFromUrl("./ufo_sightings.csv")) {
+                    qt.insert(lat, lon, "UFO");
+                    wm.insert("UFO", lat, lon);
+                }
+
+                let lat = Number(document.getElementById('lat').value);
+                let lon = Number(document.getElementById('lon').value);
+
+                document.getElementById('qt').innerText = JSON.stringify(qt.findn(lat, lon, 5));
+                document.getElementById('wm').innerText = JSON.stringify(wm.search(5, lat, lon));
+            }
+        </script>
+    </head>
+
+    <body>
+        <input type="text" id="lat"/>
+        <input type="text" id="lon"/>
+        
+        <button id="btn">Run</button>
+
+        <h3>Quadtree</h3>
+        <p id="qt"></p>
+        <h3>Geohash</h3>
+        <p id="wm"></p>
+
+        <script>
+            document.getElementById('btn').addEventListener('click', search);
+        </script>
+    </body>
+</html>
