@@ -16,6 +16,16 @@ class Obj{
         this.name = name;
         this.distance = -1;
     }
+    
+    static fromKey(key){
+        let str = "" + key;
+        let temp = str.split(',');
+        return new Obj(temp[0],temp[1],temp[2]);
+    }
+
+    toKey(){
+        return "" + this.longitude + "," + this.latitude + "," + this.name;
+    }
 
 }
 
@@ -23,7 +33,7 @@ module.exports = class world_map {
     constructor() {
         this.map = new Map();
         this.arrK = [];
-        this.scale = 10;
+        this.scale = 1;
     };
 
     test(){
@@ -51,12 +61,14 @@ module.exports = class world_map {
     
         let mapPoint = new Point(longMap,latMap);
         let key = mapPoint.toKey();
-        
+        let objkey = tempObj.toKey();
         if(!this.map.has(key)){
-            this.map.set(key, [tempObj]);
+            let set = new Set();
+            set.add(objkey);
+            this.map.set(key, set);
         }
         else{
-            this.map.get(key).push(tempObj);
+            this.map.get(key).add(objkey);
         }
         
     };
@@ -76,13 +88,10 @@ module.exports = class world_map {
         //console.log(tempKey);
 
         if(this.map.has(tempKey)){
-            //console.log(this.map.get(tempKey).length);
-            for(var i = 0; i < this.map.get(tempKey).length; ++i){
-                let tempObj = this.map.get(tempKey).at(i);
-                //console.log(tempObj);
-                //console.log(userPoint.lat);
+            for(const objString of this.map.get(tempKey)){
+
+                let tempObj = Obj.fromKey(objString);
                 tempObj.distance = this.distancebetweentwocoords(userPoint.lat,userPoint.long,tempObj.latitude, tempObj.longitude);
-                console.log("attempt check");
 
                 if(this.arrK.length < K){
                     //console.log("PUSHED");
@@ -96,7 +105,7 @@ module.exports = class world_map {
                     }
                 }
                 else{
-                    if(this.arrK[K-1].distance < tempObj.distance){
+                    if(this.arrK[K-1].distance > tempObj.distance){
                         //console.log("replaced (" + this.arrK[K-1].longitude + " , " + this.arrK[K-1].latitude + ") with (" + tempObj.longitude + " , " + tempObj.latitude + ")");
                         this.arrK[K-1] = tempObj;
                         //console.log("replaced with: (" + tempObj.longitude + " , " + tempObj.latitude + ")");
@@ -120,10 +129,6 @@ module.exports = class world_map {
         let userGridPoint = new Point(tempLong, tempLat);
 
         this.searchhelper(K,userGridPoint,userPoint);
-
-        for(let tempitr of this.arrK){
-            console.log(tempitr.latitude + " " + tempitr.longitude);
-        }
         this.radialhelper(K,1,userGridPoint,userPoint);
 
         //reconstruct arrK to be useful to example.js
@@ -135,9 +140,7 @@ module.exports = class world_map {
                 latitude: this.arrK[i].latitude,
             };
         }
-        for(let temp of this.arrK){
-            console.log(temp.distance);
-        }
+
         return arr;
     };
 
@@ -169,12 +172,11 @@ module.exports = class world_map {
         if(y+(r*this.scale) > 90){
             top = 90 - this.scale;
         }
-
-        
     
         //iterating clockwise
         let xitr = left - this.scale;
         let yitr = top;
+
         
         while(xitr != right){
             xitr = xitr + this.scale;
@@ -205,6 +207,7 @@ module.exports = class world_map {
             r = r + 1;
             this.radialhelper(K,r,userGridPoint,userGridPoint);
         }
+        
         
         return this.arrK;
     };
