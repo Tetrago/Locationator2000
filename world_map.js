@@ -1,3 +1,4 @@
+
 class Point {
     constructor(long,lat){
         this.long = long;
@@ -18,10 +19,11 @@ class Obj{
 
 }
 
-class world_map {
+module.exports = class world_map {
     constructor() {
         this.map = new Map();
         this.arrK = [];
+        this.scale = 10;
     };
 
     test(){
@@ -33,18 +35,18 @@ class world_map {
         let tempObj = new Obj(lon,lat,name);
         var latitude = lat;
         var longitude = lon;
-        var latMap = Math.floor(latitude/10)*10;
-        var longMap = Math.floor(longitude/10)*10;
+        var latMap = Math.floor(latitude/this.scale)*this.scale;
+        var longMap = Math.floor(longitude/this.scale)*this.scale;
     
         //edge cases
         if(longMap === 180){
-            longMap = 170;
+            longMap = 180 - this.scale;
         } 
         if(longitude === -180){
-            longMap = 170;
+            longMap = 180 - this.scale;
         }
         if(latMap === -90){
-            latMap = -80;
+            latMap = -90 + this.scale;
         }
     
         let mapPoint = new Point(longMap,latMap);
@@ -60,21 +62,13 @@ class world_map {
     };
 
     distancebetweentwocoords(lat1, long1, lat2, long2){
-        var R = 6371;
-        var dLat = this.degtorad(lat2-lat1);
-        var dLon = this.degtorad(long2-long1); 
-        var a = 
-          Math.sin(dLat/2) * Math.sin(dLat/2) +
-          Math.cos(this.degtorad(lat1)) * Math.cos(this.degtorad(lat2)) * 
-          Math.sin(dLon/2) * Math.sin(dLon/2)
-          ; 
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-        var d = R * c;
-        return d;
+        const d2 = deg => deg * (Math.PI / 180);
+
+        return Math.asin(Math.sqrt(
+            Math.sin(d2(lat2 - lat1) / 2)**2 + Math.cos(d2(lat1)) * Math.cos(d2(lat2)) * Math.sin(d2(long2 - long1) / 2)**2
+        ));
     };
-    degtorad(deg) {
-        return deg * (Math.PI/180)
-    };
+
 
     searchhelper(K, userGridPoint, userPoint){
         
@@ -88,10 +82,12 @@ class world_map {
                 //console.log(tempObj);
                 //console.log(userPoint.lat);
                 tempObj.distance = this.distancebetweentwocoords(userPoint.lat,userPoint.long,tempObj.latitude, tempObj.longitude);
-                
+                console.log("attempt check");
+
                 if(this.arrK.length < K){
                     //console.log("PUSHED");
                     this.arrK.push(tempObj);
+                    //console.log("inserted: (" + tempObj.longitude + " , " + tempObj.latitude + ")");
                     if(this.arrK.length === K){
                         //sort by distance
                         this.arrK.sort((a,b) => {
@@ -101,7 +97,9 @@ class world_map {
                 }
                 else{
                     if(this.arrK[K-1].distance < tempObj.distance){
+                        //console.log("replaced (" + this.arrK[K-1].longitude + " , " + this.arrK[K-1].latitude + ") with (" + tempObj.longitude + " , " + tempObj.latitude + ")");
                         this.arrK[K-1] = tempObj;
+                        //console.log("replaced with: (" + tempObj.longitude + " , " + tempObj.latitude + ")");
                         //sort by distance
                         this.arrK.sort((a,b) => {
                             return a.distance - b.distance;
@@ -117,18 +115,16 @@ class world_map {
     search(K, lat, long){
         
         let userPoint = new Point(long,lat);
-        let tempLong = Math.floor(long/10)*10;
-        let tempLat = Math.floor(lat/10)*10;
+        let tempLong = Math.floor(long/this.scale)*this.scale;
+        let tempLat = Math.floor(lat/this.scale)*this.scale;
         let userGridPoint = new Point(tempLong, tempLat);
 
         this.searchhelper(K,userGridPoint,userPoint);
 
-        this.radialhelper(K,1,userGridPoint,userPoint);
-        //console.log("Radialhelper success");
-        
-        if(this.arrK.length < K){
-            this.radialhelper(K, 2, userGridPoint,userPoint);
+        for(let tempitr of this.arrK){
+            console.log(tempitr.latitude + " " + tempitr.longitude);
         }
+        this.radialhelper(K,1,userGridPoint,userPoint);
 
         //reconstruct arrK to be useful to example.js
         let arr = [];
@@ -139,6 +135,9 @@ class world_map {
                 latitude: this.arrK[i].latitude,
             };
         }
+        for(let temp of this.arrK){
+            console.log(temp.distance);
+        }
         return arr;
     };
 
@@ -147,10 +146,10 @@ class world_map {
         var x = userGridPoint.long;
         var y = userGridPoint.lat;
 
-        let left = x-(r*10);
-        let right = x+(r*10);
-        let top = y + (r*10);
-        let bottom = y - (r*10);
+        let left = x-(r*this.scale);
+        let right = x+(r*this.scale);
+        let top = y + (r*this.scale);
+        let bottom = y - (r*this.scale);
 
         //console.log(left + " " + right);
         //console.log(top + " " + bottom);
@@ -158,51 +157,47 @@ class world_map {
 
 
         //edge cases
-        if(x-(r*10) < -180){
-            left = 170;
+        if(x-(r*this.scale) < -180){
+            left = 180 - this.scale;
         }
-        if(x+(r*10) > 180){
+        if(x+(r*this.scale) > 180){
             right = -180;
         }
-        if(y-(r*10) < -90){
-            bottom = -80;
+        if(y-(r*this.scale) < -90){
+            bottom = -90 + this.scale;
         }
-        if(y+(r*10) > 90){
-            top = 90;
+        if(y+(r*this.scale) > 90){
+            top = 90 - this.scale;
         }
 
         
     
         //iterating clockwise
-        let xitr = left - 10;
+        let xitr = left - this.scale;
         let yitr = top;
         
         while(xitr != right){
-            xitr = xitr + 10;
+            xitr = xitr + this.scale;
             let temp = new Point(xitr,top);
             this.searchhelper(K,temp,userPoint);
         }
-    
         while(yitr != bottom){
-            yitr = yitr - 10;
+            yitr = yitr - this.scale;
             let temp = new Point(right,yitr);
             this.searchhelper(K,temp,userPoint);
         }
-
-        xitr = right + 10;
+        xitr = right + this.scale;
         while(xitr != left){
-            xitr = xitr - 10;
+            xitr = xitr - this.scale;
             let temp = new Point(xitr,bottom);
             this.searchhelper(K,temp,userPoint);
         }
-
-        yitr = bottom- 10;
-        while (yitr != top - 10){
-            yitr = yitr + 10;
+        yitr = bottom - this.scale;
+        while (yitr != top - this.scale){
+            yitr = yitr + this.scale;
             let temp = new Point(left, yitr);
             this.searchhelper(K,temp,userPoint);
         }
-        
         //console.log(this.arrK.length);
 
         //recursive K check
