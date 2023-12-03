@@ -48,12 +48,12 @@ let methods = [
                 return it;
             });
         },
-        bench: (state, lat, lon, n) => {
+        bench: (state, lat, lon, n, times) => {
             const start = Date.now();
-            state.map.findn(lat, lon, n);
+            for(let i = 0; i < times; ++i) state.map.findn(lat, lon, n);
             const end = Date.now();
 
-            document.getElementById("quadtree").innerText = `Quadtree: ${(end - start) / n} ms`;
+            document.getElementById("quadtree").innerText = `Quadtree: ${(end - start) / times} ms`;
         }
     },
     {
@@ -71,12 +71,12 @@ let methods = [
                 return it;
             });
         },
-        bench: (state, lat, lon, n) => {
+        bench: (state, lat, lon, n, times) => {
             const start = Date.now();
-            state.map.search(n, lat, lon);
+            for(let i = 0; i < times; ++i) state.map.search(n, lat, lon);
             const end = Date.now();
 
-            document.getElementById("geohash").innerText = `Geohash: ${(end - start) / n} ms`;
+            document.getElementById("geohash").innerText = `Geohash: ${(end - start) / times} ms`;
         }
     },
     {
@@ -109,12 +109,12 @@ let methods = [
 
             return items.map(it => it.item);
         },
-        bench: (state, lat, lon, n) => {
+        bench: (state, lat, lon, n, times) => {
             const start = Date.now();
-            state.find(state, lat, lon, n);
+            for(let i = 0; i < times; ++i) state.find(state, lat, lon, n);
             const end = Date.now();
 
-            document.getElementById("linear").innerText = `Linear: ${(end - start) / n} ms`;
+            document.getElementById("linear").innerText = `Linear: ${(end - start) / times} ms`;
         }
     }
 ]
@@ -209,7 +209,9 @@ async function search() {
  */
 async function benchmark() {
     let count = document.getElementById("count").value;
-    if(isNaN(count)) {
+    let times = document.getElementById("times").value;
+
+    if(isNaN(count) || isNaN(times)) {
         alert("Entered invalid number");
         return;
     }
@@ -220,7 +222,7 @@ async function benchmark() {
         methods.forEach(it => it.insert(it, lat, lon, "UFO"));
     }
 
-    methods.forEach(it => it.bench(it, coords.lat, coords.lon, Number(count)));
+    methods.forEach(it => it.bench(it, coords.lat, coords.lon, Number(count), Number(times)));
 }
 
 /**
