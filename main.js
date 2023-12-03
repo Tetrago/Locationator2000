@@ -23,6 +23,15 @@ const lastIcon = new L.Icon({
     shadowSize: [41, 41]
 });
 
+const closestIcon = new L.Icon({
+    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
 // Object containing the adapters for each search method
 let methods = [
     {
@@ -172,9 +181,21 @@ async function search() {
     // Add the necessary markers to the map
     methods.forEach(it => {
         let markers = [];
+        let closest;
 
-        it.find(it, coords.lat, coords.lon, 10).forEach(point => {
-            markers.push(L.marker([point.lat, point.lon]).bindPopup(`${point.name}: ${distance(coords.lat, coords.lon, point.lat, point.lon).toFixed(2)} km`));
+        it.find(it, coords.lat, coords.lon, 10)
+            .sort((a, b) => distance(coords.lat, coords.lon, a.lat, a.lon) > distance(coords.lat, coords.lon, b.lat, b.lon))
+            .forEach(point => {
+            let marker;
+
+            if(closest === undefined) {
+                closest = marker = L.marker([point.lat, point.lon], { icon: closestIcon });
+            }
+            else {
+                marker = L.marker([point.lat, point.lon]);
+            }
+
+            markers.push(marker.bindPopup(`${point.name}: ${distance(coords.lat, coords.lon, point.lat, point.lon).toFixed(2)} km`));
         });
 
         const layer = L.layerGroup(markers).addTo(map);
