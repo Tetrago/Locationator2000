@@ -104,6 +104,19 @@ let methods = [
     }
 ]
 
+function getDatasets() {
+    let datasets = [];
+    let menu = document.getElementById("datasets").options;
+
+    for(let i = 0; i < menu.length; ++i) {
+        if(menu[i].selected) {
+            datasets.push({ label: menu[i].innerText, dataset: menu[i].value });
+        }
+    }
+
+    return datasets;
+}
+
 async function search() {
     layers.forEach(it => {
         layerControl.removeLayer(it);
@@ -112,8 +125,10 @@ async function search() {
 
     methods.forEach(it => it.init(it));
 
-    for await(const { lat, lon } of loadDataset("ufo_sightings")) {
-        methods.forEach(it => it.insert(it, lat, lon, "UFO"));
+    for({ label, dataset } of getDatasets()) {
+        for await(const { lat, lon } of loadDataset(dataset)) {
+            methods.forEach(it => it.insert(it, lat, lon, label));
+        }
     }
 
     methods.forEach(it => {
