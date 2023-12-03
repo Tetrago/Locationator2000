@@ -9,7 +9,6 @@
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha512-dfX5uYVXzyU8+KHqj8bjo7UkOdg18PaOtpa48djpNbZHwExddghZ+ZmzWT06R5v6NSk3ZUfsH6FNEDepLx9hPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-        <script src="./papaparse.min.js"></script>
         <script src="./loader.js"></script>
         <script src="./quadtree.js"></script>
         <script src="./world_map.js"></script>
@@ -23,47 +22,32 @@
             <h1>Hang on! We're trying to get your current location...</h1>
         </div>
 
-        <div class="header">
+        <div class="sidebar">
             <div class="logo">
-                <pre>
-.____                         __  .__                      __               _______________  _______  _______   
-|    |    ____   ____ _____ _/  |_|__| ____   ____ _____ _/  |_  ___________\_____  \   _  \ \   _  \ \   _  \  
-|    |   /  _ \_/ ___\\__  \\   __\  |/  _ \ /    \\__  \\   __\/  _ \_  __ \/  ____/  /_\  \/  /_\  \/  /_\  \ 
-|    |__(  <_> )  \___ / __ \|  | |  (  <_> )   |  \/ __ \|  | (  <_> )  | \/       \  \_/   \  \_/   \  \_/   \
-|_______ \____/ \___  >____  /__| |__|\____/|___|  (____  /__|  \____/|__|  \_______ \_____  /\_____  /\_____  /
-        \/          \/     \/                    \/     \/                          \/     \/       \/       \/ 
-                </pre>
+                <img src="./logo.png"/>
             </div>
 
-            <div class="settings">
-                <div class="coords">
-                    <input type="text" id="lat" placeholder="Latitude">
-                    <input type="text" id="lon" placeholder="Longitude">
-                    <button id="go">What's Closest?</button>
-                </div>
-
-                <div class="datasets">
-                    <select id="datasets" multiple>
-                        <option value="ufo_sightings">UFO Sighting</option>
-                        <option value="wind_turbines">Wind Turbine</option>
-                        <option value="skyscrapers">Skyscraper</option>
-                        <option value="bfro_locations">Bigfoot</option>
-                        <option value="haunted_places">Haunted</option>
-                    </select>
-                </div>
-
-                <div class="custom">
-                    <input type="file" id="file"/>
-                    <button id="upload">Upload</button>
-                </div>
+            <div class="coords">
+                <input type="text" id="lat" placeholder="Latitude">
+                <input type="text" id="lon" placeholder="Longitude">
+                <button id="go">What's Closest?</button>
             </div>
-        </div>
 
-        <div class="container">
-            <div id="map"></div>
-        </div>
+            <div class="datasets">
+                <select id="datasets" multiple>
+                    <option value="ufo_sightings">UFO Sighting</option>
+                    <option value="wind_turbines">Wind Turbine</option>
+                    <option value="skyscrapers">Skyscraper</option>
+                    <option value="bfro_locations">Bigfoot</option>
+                    <option value="haunted_places">Haunted</option>
+                </select>
+            </div>
 
-        <div class="footer">
+            <div class="custom">
+                <input type="file" id="file"/>
+                <button id="upload">Upload</button>
+            </div>
+
             <div class="control">
                 <input type="text" id="count" value="10" placeholder="Count">
                 <p>by</p>
@@ -76,6 +60,10 @@
                 <p id="geohash"></p>
                 <p id="linear"></p>
             </div>
+        </div>
+
+        <div class="container">
+            <div id="map"></div>
         </div>
     </body>
 </html>

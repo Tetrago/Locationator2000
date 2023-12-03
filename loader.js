@@ -13,8 +13,8 @@ async function* loadFromUrl(url) {
 
         if(i === 0) {
             for(let j = 0; j < items.length; ++j) {
-                if(items[j].includes("Latitude")) headers.lat = j;
-                else if(items[j].includes("Longitude")) headers.lon = j;
+                if(items[j].match(/[Ll]atitude/) !== null) headers.lat = j;
+                else if(items[j].match(/[Ll]ongitude/) !== null) headers.lon = j;
             }
         }
         else if(i != results.data.length - 1) {
