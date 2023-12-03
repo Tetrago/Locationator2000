@@ -38,7 +38,7 @@ class Quadtree {
         if(child === undefined) {
             // There is no preexisting element
 
-            node.children[quad] = { lat, lon, data };
+            node.children[quad] = { lat, lon, data, parent: node };
         }
         else if(child.hasOwnProperty("children")) {
             // There is a preexisting node
@@ -54,6 +54,7 @@ class Quadtree {
             // Create a new children by shrinking the parent's extent
             let next = {
                 children: {},
+                parent: node,
                 center: {
                     lat: node.center.lat + node.extent.lat * (lat > node.center.lat ? 0.5 : -0.5),
                     lon: node.center.lon + node.extent.lon * (lon > node.center.lon ? 0.5 : -0.5),
@@ -82,90 +83,73 @@ class Quadtree {
         this.insertRecursive(this.root, lat, lon, data);
     }
 
-    /**
-     * Weaves two iterators together by determining the next closest element between the two.
-     */
-    *weave(lat, lon, a, b) {
-        let x = a.next();
-        let y = b.next();
-
-        if(!x.done && !y.done) {
-            // If both generators still have values
-
-            // Function to prepend a generate with their previous value
-            const replace = function*(value, gen) {
-                yield value;
-                yield* gen;
-            }
-
-            if(this.distance(x.value.lat, x.value.lon, lat, lon) < this.distance(y.value.lat, y.value.lon, lat, lon)) {
-                yield x.value;
-                yield* this.weave(lat, lon, a, replace(y.value, b));
-            }
-            else {
-                yield y.value;
-                yield* this.weave(lat, lon, replace(x.value, a), b);
-            }
-        }
-        else if(x.done && y.done) {
-            // If both a and b are empty, end
-
-            return;
-        }
-        else if(x.done) {
-            // If a is empty, defer to b
-
-            yield y.value;
-            yield* b;
-        }
-        else if(y.done) {
-            // If b is empty, defer to 
-
-            yield x.value;
-            yield* a;
-        }
-    }
-
-    *findRecursive(node, lat, lon) {
+    findRecursive(node, lat, lon) {
         if(node === undefined) {
             // There is no preexisting element
 
-            return;
+            return undefined;
         }
         else if(node.hasOwnProperty("children")) {
             // There is a preexisting node
 
-            let nodes = ["TR", "TL", "BR", "BL"].map(key => this.findRecursive(node.children[key], lat, lon));
-            yield* this.weave(lat, lon, this.weave(lat, lon, nodes[0], nodes[1]), this.weave(lat, lon, nodes[2], nodes[3]));
+            // Get the clostest one of the children
+            return ["TR", "TL", "BR", "BL"].map(key => this.findRecursive(node.children[key], lat, lon))
+                .filter(it => it !== undefined)
+                .sort((a, b) => this.distance(lat, lon, a.lat, a.lon) > this.distance(lat, lon, b.lat, b.lon))[0];
         }
         else {
             // There is a preexisting datapoint
 
-            yield node;
+            return node;
         }
     }
 
     /**
-     * Creates a generate of the closest elements to the given point
+     * Find all points under a given node except for a given branch
      */
-    *find(lat, lon) {
-        yield* this.findRecursive(this.root, lat, lon);
+    findAll(stack, node) {
+        if(node === undefined) {
+            // There is no preexisting element
+
+            return stack;
+        }
+        else if(node.hasOwnProperty("children")) {
+            // There is a preexisting node
+
+            return stack.concat(Object.values(node.children).map(it => this.findAll([], it)).flat());
+        }
+        else {
+            // There is a preexisting datapoint
+
+            return stack.concat([node]);
+        }
     }
 
     /**
-     * Get the n closest datapoints to the given location
+     * Creates a list of the closest elements to the given point
      */
     findn(lat, lon, n) {
-        let items = [];
-        let gen = this.find(lat, lon);
+        let stack = [];
 
-        for(let i = 0; i < n; ++i) {
-            let val = gen.next();
+        let pointer = this.findRecursive(this.root, lat, lon);
+        stack.push(pointer);
 
-            if(val.done) break;
-            items.push(val.value);
+        while(stack.length < n && pointer.parent !== undefined) {
+            let points = Object.values(pointer.parent.children)
+                .filter(it => it != pointer)
+                .map(it => this.findAll([], it))
+                .flat()
+                .sort((a, b) => this.distance(lat, lon, a.lat, a.lon) > this.distance(lat, lon, b.lat, b.lon));
+            
+            pointer = pointer.parent;
+
+            for(let i = 0; i < points.length; ++i) {
+                if(stack.length == n) return stack;
+                stack.push(points[i]);
+            }
         }
 
-        return items;
+        console.log(stack);
+        return stack;
     }
 }

@@ -1,11 +1,21 @@
 let map;
 let layerControl;
 let coords = {};
+let last;
 let settings = {};
 let layers = [];
 
 const coordsIcon = new L.Icon({
     iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
+const lastIcon = new L.Icon({
+    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-black.png",
     shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
     iconSize: [25, 41],
     iconAnchor: [12, 41],
@@ -61,13 +71,6 @@ let methods = [
     },
     {
         name: "Linear",
-        distance: (lat1, lon1, lat2, lon2) => {
-            const d2 = deg => deg * (Math.PI / 180);
-
-            return Math.asin(Math.sqrt(
-                Math.sin(d2(lat2 - lat1) / 2)**2 + Math.cos(d2(lat1)) * Math.cos(d2(lat2)) * Math.sin(d2(lon2 - lon1) / 2)**2
-            ));
-        },
         init: state => {
             state.list = [];
         },
@@ -77,13 +80,13 @@ let methods = [
             }
         },
         find: (state, lat, lon, n) => {
-            let items = state.list.slice(0, n).map(it => { return { dist: state.distance(lat, lon, it.lat, it.lon), item: it }; });
+            let items = state.list.slice(0, n).map(it => { return { dist: distance(lat, lon, it.lat, it.lon), item: it }; });
 
             state.list.forEach(it => {
                 items.find(item => {
-                    let distance = state.distance(lat, lon, it.lat, it.lon);
-                    if(distance < item.dist) {
-                        item.dist = distance;
+                    let dist = distance(lat, lon, it.lat, it.lon);
+                    if(dist < item.dist) {
+                        item.dist = dist;
                         item.item = it;
                         return true;
                     }
@@ -104,6 +107,19 @@ let methods = [
     }
 ]
 
+/**
+ * Haversine distance formula
+ * 
+ * @returns Distance in kilometers
+ */
+function distance(lat1, lon1, lat2, lon2) {
+    const d2 = deg => deg * (Math.PI / 180);
+
+    return 2 * 6371 * Math.asin(Math.sqrt(
+        Math.sin(d2(lat2 - lat1) / 2)**2 + Math.cos(d2(lat1)) * Math.cos(d2(lat2)) * Math.sin(d2(lon2 - lon1) / 2)**2
+    ));
+}
+
 function getDatasets() {
     let datasets = [];
     let menu = document.getElementById("datasets").options;
@@ -118,6 +134,9 @@ function getDatasets() {
 }
 
 async function search() {
+    if(last !== undefined) map.removeLayer(last);
+    last = L.marker([coords.lat, coords.lon], { icon: lastIcon }).addTo(map);
+
     layers.forEach(it => {
         layerControl.removeLayer(it);
         map.removeLayer(it);
@@ -135,7 +154,7 @@ async function search() {
         let markers = [];
 
         it.find(it, coords.lat, coords.lon, 10).forEach(point => {
-            markers.push(L.marker([point.lat, point.lon]).bindPopup(point.name));
+            markers.push(L.marker([point.lat, point.lon]).bindPopup(`${point.name}: ${distance(coords.lat, coords.lon, point.lat, point.lon).toFixed(2)} km`));
         });
 
         const layer = L.layerGroup(markers).addTo(map);
