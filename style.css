@@ -38,6 +38,10 @@ body {
     font-family: Consolas;
     font-weight: 900;
     text-shadow: var(--primary-color) 1px 1px 5px;
+    cursor: default;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .settings {

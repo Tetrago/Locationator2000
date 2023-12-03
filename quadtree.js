@@ -16,7 +16,14 @@ class Quadtree {
      * Finds the key of the next child based on the relative coordinates
      */
     findQuadrant(center, lat, lon) {
-        return (lat > center.lat ? "T" : "B") + (lon > center.lon ? "R" : "L");
+        return (lat > center.lat ? 2 : 1) + (lon > center.lon ? 8 : 4);
+    }
+
+    /**
+     * Decodes a quadrant key into a direction vector
+     */
+    decodeQuadrant(key) {
+        return { lat: key & 2 ? 1 : -1, lon: key & 8 ? 1 : -1 };
     }
 
     /**
@@ -83,7 +90,10 @@ class Quadtree {
         this.insertRecursive(this.root, lat, lon, data);
     }
 
-    findRecursive(node, lat, lon) {
+    findNodeRecursive(node, lat, lon, minExtent=undefined) {
+        // Make sure the position is not out of bounds
+        if(Math.abs(lat) > this.root.extent.lat || Math.abs(lon) > this.root.extent.lon) return undefined;
+
         if(node === undefined) {
             // There is no preexisting element
 
@@ -92,22 +102,24 @@ class Quadtree {
         else if(node.hasOwnProperty("children")) {
             // There is a preexisting node
 
+            if(minExtent !== undefined && node.extent.lat < minExtent.lat) return node;
+
             // Get the clostest one of the children
-            return ["TR", "TL", "BR", "BL"].map(key => this.findRecursive(node.children[key], lat, lon))
+            return Object.values(node.children).map(it => this.findNodeRecursive(it, lat, lon, minExtent))
                 .filter(it => it !== undefined)
-                .sort((a, b) => this.distance(lat, lon, a.lat, a.lon) > this.distance(lat, lon, b.lat, b.lon))[0];
+                .sort((a, b) => this.distance(lat, lon, a.center.lat, a.center.lon) > this.distance(lat, lon, b.center.lat, b.center.lon))[0];
         }
         else {
             // There is a preexisting datapoint
 
-            return node;
+            return node.parent;
         }
     }
 
     /**
      * Find all points under a given node except for a given branch
      */
-    findAll(stack, node) {
+    findAll(node, stack=[]) {
         if(node === undefined) {
             // There is no preexisting element
 
@@ -116,39 +128,44 @@ class Quadtree {
         else if(node.hasOwnProperty("children")) {
             // There is a preexisting node
 
-            return stack.concat(Object.values(node.children).map(it => this.findAll([], it)).flat());
+            Object.values(node.children).forEach(it => this.findAll(it, stack));
         }
         else {
             // There is a preexisting datapoint
 
-            return stack.concat([node]);
+            stack.push(node);
         }
+
+        return stack;
     }
 
     /**
      * Creates a list of the closest elements to the given point
      */
     findn(lat, lon, n) {
-        let stack = [];
+        let node = this.findNodeRecursive(this.root, lat, lon);
 
-        let pointer = this.findRecursive(this.root, lat, lon);
-        stack.push(pointer);
+        const findKey = node => Object.entries(node.parent.children).filter(([key, value]) => value == node)[0][0];
 
-        while(stack.length < n && pointer.parent !== undefined) {
-            let points = Object.values(pointer.parent.children)
-                .filter(it => it != pointer)
-                .map(it => this.findAll([], it))
+        while(node !== undefined) {
+            const dir = this.decodeQuadrant(findKey(node));
+            const internalNodes = Object.values(node.parent.children).filter(it => it != node);
+
+            const externalNodes = [[dir.lat, dir.lon], [dir.lat, 0], [0, dir.lon], [dir.lat, -dir.lon], [-dir.lat, dir.lon]]
+                .map(([dlat, dlon]) => [lat + dlat * node.extent.lat, lon + dlon * node.extent.lon])
+                .map(([lat, lon]) => this.findNodeRecursive(this.root, lat, lon, node.extent))
+
+            const points = Array.from(new Set(internalNodes.concat(externalNodes).concat(node)))
+                .filter(it => it !== undefined)
+                .map(it => this.findAll(it))
                 .flat()
                 .sort((a, b) => this.distance(lat, lon, a.lat, a.lon) > this.distance(lat, lon, b.lat, b.lon));
-            
-            pointer = pointer.parent;
 
-            for(let i = 0; i < points.length; ++i) {
-                if(stack.length == n) return stack;
-                stack.push(points[i]);
-            }
+            if(points.length >= n) return points.slice(0, n);
+
+            node = node.parent;
         }
 
-        return stack;
+        return [];
     }
 }
