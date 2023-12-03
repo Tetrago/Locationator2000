@@ -3,43 +3,60 @@
     <head>
         <title>Locationator2000</title>
 
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha512-dfX5uYVXzyU8+KHqj8bjo7UkOdg18PaOtpa48djpNbZHwExddghZ+ZmzWT06R5v6NSk3ZUfsH6FNEDepLx9hPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
         <script src="./papaparse.min.js"></script>
         <script src="./loader.js"></script>
         <script src="./quadtree.js"></script>
         <script src="./world_map.js"></script>
+        <script src="./main.js"></script>
 
-        <script>
-            async function search() {
-                let qt = new Quadtree();
-                let wm = new world_map();
-
-                for await(const { lat, lon } of loadFromUrl("./ufo_sightings.csv")) {
-                    qt.insert(lat, lon, "UFO");
-                    wm.insert("UFO", lat, lon);
-                }
-
-                let lat = Number(document.getElementById('lat').value);
-                let lon = Number(document.getElementById('lon').value);
-
-                document.getElementById('qt').innerText = JSON.stringify(qt.findn(lat, lon, 5));
-                document.getElementById('wm').innerText = JSON.stringify(wm.search(5, lat, lon));
-            }
-        </script>
+        <link rel="stylesheet" href="./style.css"/>
     </head>
 
     <body>
-        <input type="text" id="lat"/>
-        <input type="text" id="lon"/>
-        
-        <button id="btn">Run</button>
+        <div id="alert">
+            <h1>Hang on! We're trying to get your current location...</h1>
+        </div>
 
-        <h3>Quadtree</h3>
-        <p id="qt"></p>
-        <h3>Geohash</h3>
-        <p id="wm"></p>
+        <div class="header">
+            <div class="logo">
+                <pre>
+.____                         __  .__                      __               _______________  _______  _______   
+|    |    ____   ____ _____ _/  |_|__| ____   ____ _____ _/  |_  ___________\_____  \   _  \ \   _  \ \   _  \  
+|    |   /  _ \_/ ___\\__  \\   __\  |/  _ \ /    \\__  \\   __\/  _ \_  __ \/  ____/  /_\  \/  /_\  \/  /_\  \ 
+|    |__(  <_> )  \___ / __ \|  | |  (  <_> )   |  \/ __ \|  | (  <_> )  | \/       \  \_/   \  \_/   \  \_/   \
+|_______ \____/ \___  >____  /__| |__|\____/|___|  (____  /__|  \____/|__|  \_______ \_____  /\_____  /\_____  /
+        \/          \/     \/                    \/     \/                          \/     \/       \/       \/ 
+                </pre>
+            </div>
 
-        <script>
-            document.getElementById('btn').addEventListener('click', search);
-        </script>
+            <div class="settings">
+                <div class="coords">
+                    <input type="text" id="lat">
+                    <input type="text" id="lon">
+                    <button id="go">What's Closest?</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div id="map"></div>
+        </div>
+
+        <div class="footer">
+            <div class="control">
+                <input type="text" id="count" value="100">
+                <button id="bench">Benchmark</button>
+            </div>
+
+            <div class="results">
+                <p id="quadtree"></p>
+                <p id="geohash"></p>
+                <p id="linear"></p>
+            </div>
+        </div>
     </body>
 </html>

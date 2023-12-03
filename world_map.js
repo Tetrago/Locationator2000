@@ -29,7 +29,7 @@ class Obj{
 
 }
 
-module.exports = class world_map {
+class world_map {
     constructor() {
         this.map = new Map();
         this.arrK = [];

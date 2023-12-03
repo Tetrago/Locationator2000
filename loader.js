@@ -27,3 +27,7 @@ async function* loadFromUrl(url) {
         }
     }
 }
+
+async function* loadDataset(name) {
+    yield* await loadFromUrl(`datasets/${name}.csv`)
+}
