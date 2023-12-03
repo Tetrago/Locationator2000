@@ -49,9 +49,9 @@ let methods = [
             });
         },
         bench: (state, lat, lon, n, times) => {
-            const start = Date.now();
+            const start = window.performance.now();
             for(let i = 0; i < times; ++i) state.map.findn(lat, lon, n);
-            const end = Date.now();
+            const end = window.performance.now();
 
             document.getElementById("quadtree").innerText = `Quadtree: ${(end - start) / times} ms`;
         }
@@ -72,9 +72,9 @@ let methods = [
             });
         },
         bench: (state, lat, lon, n, times) => {
-            const start = Date.now();
+            const start = window.performance.now();
             for(let i = 0; i < times; ++i) state.map.search(n, lat, lon);
-            const end = Date.now();
+            const end = window.performance.now();
 
             document.getElementById("geohash").innerText = `Geohash: ${(end - start) / times} ms`;
         }
@@ -110,9 +110,9 @@ let methods = [
             return items.map(it => it.item);
         },
         bench: (state, lat, lon, n, times) => {
-            const start = Date.now();
+            const start = window.performance.now();
             for(let i = 0; i < times; ++i) state.find(state, lat, lon, n);
-            const end = Date.now();
+            const end = window.performance.now();
 
             document.getElementById("linear").innerText = `Linear: ${(end - start) / times} ms`;
         }
