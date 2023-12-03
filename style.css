@@ -42,6 +42,7 @@ body {
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    font-size: smaller;
 }
 
 .settings {
@@ -123,15 +124,16 @@ button:active {
 }
 
 .control {
-    width: 20%;
+    width: 50%;
     height: 100%;
     display: flex;
-    justify-content: space-evenly;
+    justify-content: center;
     align-items: center;
+    gap: 10px;
 }
 
 .results {
-    width: 80%;
+    width: 50%;
     height: 100%;
     display: flex;
     justify-content: space-evenly;
