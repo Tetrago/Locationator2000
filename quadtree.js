@@ -149,7 +149,6 @@ class Quadtree {
             }
         }
 
-        console.log(stack);
         return stack;
     }
 }

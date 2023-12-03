@@ -23,6 +23,7 @@ const lastIcon = new L.Icon({
     shadowSize: [41, 41]
 });
 
+// Object containing the adapters for each search method
 let methods = [
     {
         name: "Quadtree",
@@ -83,7 +84,7 @@ let methods = [
             let items = state.list.slice(0, n).map(it => { return { dist: distance(lat, lon, it.lat, it.lon), item: it }; });
 
             state.list.forEach(it => {
-                items.find(item => {
+                if(items.find(item => {
                     let dist = distance(lat, lon, it.lat, it.lon);
                     if(dist < item.dist) {
                         item.dist = dist;
@@ -92,7 +93,9 @@ let methods = [
                     }
 
                     return false;
-                });
+                })) {
+                    items = items.sort((a, b) => distance(lat, lon, a.item.lat, a.item.lon) < distance(lat, lon, b.item.lat, b.item.lon));
+                }
             });
 
             return items.map(it => it.item);
@@ -120,6 +123,11 @@ function distance(lat1, lon1, lat2, lon2) {
     ));
 }
 
+/**
+ * Gets the datasets enabled by the user
+ * 
+ * @returns List of objects containing the dataset name and lexical label
+ */
 function getDatasets() {
     let datasets = [];
     let menu = document.getElementById("datasets").options;
@@ -133,23 +141,35 @@ function getDatasets() {
     return datasets;
 }
 
+/**
+ * Performs the searches and adds the markers to the map
+ */
 async function search() {
+    // Place the last search marker (in case the user moves the coordinates)
     if(last !== undefined) map.removeLayer(last);
     last = L.marker([coords.lat, coords.lon], { icon: lastIcon }).addTo(map);
 
+    // Remove existing map layers
     layers.forEach(it => {
         layerControl.removeLayer(it);
         map.removeLayer(it);
     });
 
+    // Initialize (and clear existing) maps
     methods.forEach(it => it.init(it));
 
+    // For each enabled dataset
     for({ label, dataset } of getDatasets()) {
+
+        // Fetch the dataset points
         for await(const { lat, lon } of loadDataset(dataset)) {
+
+            // Add points to each data structure
             methods.forEach(it => it.insert(it, lat, lon, label));
         }
     }
 
+    // Add the necessary markers to the map
     methods.forEach(it => {
         let markers = [];
 
@@ -163,6 +183,9 @@ async function search() {
     });
 }
 
+/**
+ * Performs benchmarks and updates the on-screen text
+ */
 async function benchmark() {
     let count = document.getElementById("count").value;
     if(isNaN(count)) {
@@ -179,6 +202,9 @@ async function benchmark() {
     methods.forEach(it => it.bench(it, coords.lat, coords.lon, Number(count)));
 }
 
+/**
+ * One-time setup of the map
+ */
 function setup() {
     map = L.map("map").setView([0, 0], 5);
     layerControl = L.control.layers([], []).addTo(map);
@@ -193,6 +219,9 @@ function setup() {
     }).addTo(map);
 }
 
+/**
+ * Responsible for updating the map and marker position and internal coordinate storage when the user enters custom coordinates
+ */
 function onCoordsChanged() {
     if(isNaN(settings.lat.value) || isNaN(settings.lon.value)) {
         alert("Entered invalid coordinates");
@@ -205,6 +234,9 @@ function onCoordsChanged() {
     }
 }
 
+/**
+ * Moves the map to the specified coordinates and updates the global stored coordinates;
+ */
 function moveTo(lat, lon) {
     settings.lat.value = lat;
     settings.lon.value = lon;
@@ -219,15 +251,19 @@ function moveTo(lat, lon) {
 }
 
 window.onload = () => {
+    // Load the map
     setup();
 
+    // Store the coordinate input fields and set the global state
     settings.lat = document.getElementById("lat");
     settings.lon = document.getElementById("lon");
     moveTo(0, 0);
 
+    // Add the coordinate input listeners
     settings.lat.addEventListener("change", onCoordsChanged);
     settings.lon.addEventListener("change", onCoordsChanged);
 
+    // Attempt to get the device's current location and update the map
     if("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(pos => {
             moveTo(pos.coords.latitude, pos.coords.longitude);
@@ -240,6 +276,7 @@ window.onload = () => {
         document.getElementById("alert").style.display = "none";
     }
 
+    // Add button click listeners
     document.getElementById("go").addEventListener("click", search);
     document.getElementById("bench").addEventListener("click", benchmark);
 }
