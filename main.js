@@ -273,6 +273,21 @@ function moveTo(lat, lon) {
     map.flyTo([lat, lon]);
 }
 
+async function upload() {
+    const file = document.getElementById("file").files[0];
+    if(file === undefined) return;
+
+    const name = prompt("Enter the dataset name");
+    if(name.length == 0) return;
+
+    uploadDataset(name, file);
+
+    let opt = document.createElement("option");
+    opt.value = name;
+    opt.innerText = name;
+    document.getElementById("datasets").appendChild(opt);
+}
+
 window.onload = () => {
     // Load the map
     setup();
@@ -301,5 +316,6 @@ window.onload = () => {
 
     // Add button click listeners
     document.getElementById("go").addEventListener("click", search);
+    document.getElementById("upload").addEventListener("click", upload);
     document.getElementById("bench").addEventListener("click", benchmark);
 }
