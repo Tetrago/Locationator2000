@@ -179,7 +179,7 @@ async function search() {
     }
 
     // Get the number of requested elements from the slider
-    let count = Number(document.getElementById("count").value);
+    let count = Number(document.getElementById("ntimes").value);
 
     // Add the necessary markers to the map
     methods.forEach(it => {
@@ -264,7 +264,7 @@ function onCoordsChanged() {
  * Responsible for updating the display for the number of elements requested
  */
 function onCountChanged() {
-    document.getElementById("display").innerText = document.getElementById("count").value;
+    document.getElementById("display").innerText = document.getElementById("ntimes").value;
 }
 
 /**
@@ -312,7 +312,7 @@ window.onload = () => {
     settings.lon.addEventListener("change", onCoordsChanged);
     
     // Setup the count slider
-    let slider = document.getElementById("count");
+    let slider = document.getElementById("ntimes");
     slider.addEventListener("input", onCountChanged);
     slider.value = 10;
     document.getElementById("display").innerText = slider.value;
