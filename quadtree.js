@@ -206,7 +206,7 @@ class Quadtree {
             
             if(points.filter(it => this.distance(lat, lon, it.lat, it.lon) <= maxDistance).length >= n) {
                 // If we've hit the number of points we need, sort and return
-                return points.sort((a, b) => this.distance(lat, lon, a.lat, a.lon) > this.distance(lat, lon, b.lat, b.lon)).slice(0, n);
+                return points.sort((a, b) => this.distance(lat, lon, a.lat, a.lon) - this.distance(lat, lon, b.lat, b.lon)).slice(0, n);
             }
 
             // Otherwise, store and continue
@@ -215,6 +215,6 @@ class Quadtree {
         }
 
         // If we didn't find all the elements that were requested, return what we have.
-        return stack.sort((a, b) => this.distance(lat, lon, a.lat, a.lon) > this.distance(lat, lon, b.lat, b.lon));
+        return stack.sort((a, b) => this.distance(lat, lon, a.lat, a.lon) - this.distance(lat, lon, b.lat, b.lon));
     }
 }

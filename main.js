@@ -103,7 +103,7 @@ let methods = [
 
                     return false;
                 })) {
-                    items = items.sort((a, b) => distance(lat, lon, a.item.lat, a.item.lon) < distance(lat, lon, b.item.lat, b.item.lon));
+                    items = items.sort((a, b) => distance(lat, lon, b.item.lat, b.item.lon) - distance(lat, lon, a.item.lat, a.item.lon));
                 }
             });
 
@@ -187,7 +187,7 @@ async function search() {
         let closest;
 
         it.find(it, coords.lat, coords.lon, count)
-            .sort((a, b) => distance(coords.lat, coords.lon, a.lat, a.lon) > distance(coords.lat, coords.lon, b.lat, b.lon))
+            .sort((a, b) => distance(coords.lat, coords.lon, a.lat, a.lon) - distance(coords.lat, coords.lon, b.lat, b.lon))
             .forEach(point => {
             let marker;
 
