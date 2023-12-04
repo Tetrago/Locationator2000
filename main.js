@@ -178,12 +178,15 @@ async function search() {
         }
     }
 
+    // Get the number of requested elements from the slider
+    let count = Number(document.getElementById("count").value);
+
     // Add the necessary markers to the map
     methods.forEach(it => {
         let markers = [];
         let closest;
 
-        it.find(it, coords.lat, coords.lon, 10)
+        it.find(it, coords.lat, coords.lon, count)
             .sort((a, b) => distance(coords.lat, coords.lon, a.lat, a.lon) > distance(coords.lat, coords.lon, b.lat, b.lon))
             .forEach(point => {
             let marker;
@@ -258,6 +261,13 @@ function onCoordsChanged() {
 }
 
 /**
+ * Responsible for updating the display for the number of elements requested
+ */
+function onCountChanged() {
+    document.getElementById("display").innerText = document.getElementById("count").value;
+}
+
+/**
  * Moves the map to the specified coordinates and updates the global stored coordinates;
  */
 function moveTo(lat, lon) {
@@ -300,6 +310,12 @@ window.onload = () => {
     // Add the coordinate input listeners
     settings.lat.addEventListener("change", onCoordsChanged);
     settings.lon.addEventListener("change", onCoordsChanged);
+    
+    // Setup the count slider
+    let slider = document.getElementById("count");
+    slider.addEventListener("input", onCountChanged);
+    slider.value = 10;
+    document.getElementById("display").innerText = slider.value;
 
     // Attempt to get the device's current location and update the map
     if("geolocation" in navigator) {
