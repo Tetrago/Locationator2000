@@ -233,16 +233,23 @@ async function benchmark() {
  */
 function setup() {
     map = L.map("map").setView([0, 0], 5);
-    layerControl = L.control.layers([], []).addTo(map);
 
     map.on("click", e => {
         moveTo(e.latlng.lat, e.latlng.lng);
     });
 
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://openstreemap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
+    let maps = {
+        "OpenStreetMap": L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://openstreemap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map),
+        "OpenTopoMap": L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19 ,
+            attribution: '&copy; <a href="http://openstreemap.org/copyright">OpenStreetMap</a>'
+        })
+    };
+
+    layerControl = L.control.layers(maps, {}).addTo(map);
 }
 
 /**
