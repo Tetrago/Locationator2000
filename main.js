@@ -244,8 +244,18 @@ function setup() {
             attribution: '&copy; <a href="http://openstreemap.org/copyright">OpenStreetMap</a>'
         }).addTo(map),
         "OpenTopoMap": L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
-            maxZoom: 19 ,
+            maxZoom: 19,
             attribution: '&copy; <a href="http://openstreemap.org/copyright">OpenStreetMap</a>'
+        }),
+        "Sentinel-2 Cloudless": L.tileLayer.wms("https://tiles.maps.eox.at/wms?service=wms&", {
+            layers: "s2cloudless-2020_3857_512",
+            maxZoom: 19,
+            attribution: '<a xmlns:dct="http://purl.org/dc/terms/" href="https://s2maps.eu" property="dct:title">Sentinel-2 cloudless - https://s2maps.eu</a> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://eox.at" property="cc:attributionName" rel="cc:attributionURL">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2020) released under <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>. For commercial usage please see <a href="https://cloudless.eox.at">https://cloudless.eox.at</a>'
+        }),
+        "Sentinel-2 Terrain Light": L.tileLayer.wms("https://tiles.maps.eox.at/wms?service=wms&", {
+            layers: "terrain-light_3857",
+            maxZoom: 19,
+            attribution: '<a href="https://maps.eox.at">Terrain Light</a> { Data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors and <a href="https://maps.eox.at/#data">others</a>, Rendering &copy; <a href="https://eox.at">EOX</a> }'
         })
     };
 
